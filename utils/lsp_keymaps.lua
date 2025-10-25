@@ -1,7 +1,4 @@
--- File: lua/utils/lsp_keymaps.lua
---
--- A generic utility to set buffer-local LSP keymaps based on
--- server capabilities, with no plugin dependencies.
+-- A generic utility to set buffer-local LSP keymaps based on server capabilities
 
 local M = {}
 
@@ -83,10 +80,20 @@ function M.on_attach(keymap_spec, buffer)
 		-- 3. If both pass, set the keymap
 		if has_capability and is_cond_met then
 			local mode, lhs, rhs, opts = parse_key_spec(keys)
+			local current_filetype = vim.bo.filetype
+			local icon, highlight = require("mini.icons").get("filetype", current_filetype)
 
 			if mode and lhs and rhs and opts then
-				opts.buffer = buffer -- This is crucial! Makes the keymap buffer-local.
-				vim.keymap.set(mode, lhs, rhs, opts)
+				require("which-key").add({
+					{
+						lhs,
+						rhs,
+						buffer = buffer,
+						desc = opts.desc,
+						mode = mode,
+						icon = { icon = icon, hl = highlight },
+					},
+				})
 			end
 		end
 	end
