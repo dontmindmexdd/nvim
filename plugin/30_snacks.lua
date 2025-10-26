@@ -1,6 +1,6 @@
-local add = MiniDeps.add
+local add, now = MiniDeps.add, MiniDeps.now
 
-_G.Config.now_if_args(function()
+now(function()
 	add("folke/snacks.nvim")
 
 	require("snacks").setup({

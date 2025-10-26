@@ -45,8 +45,6 @@ now(function()
 	})
 
 	wk.add({
-		{ mode = { "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", desc = "Down", expr = true, silent = true },
-		{ mode = { "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", desc = "Up", expr = true, silent = true },
 		{ "<leader>bb", "<cmd>e #<cr>", desc = "Switch to Other Buffer" },
 		{ "<leader>`", "<cmd>e #<cr>", desc = "Switch to Other Buffer" },
 		{ "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete Buffer" },

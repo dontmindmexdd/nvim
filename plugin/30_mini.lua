@@ -119,3 +119,36 @@ end)
 later(function() require("mini.splitjoin").setup() end)
 
 later(function() require("mini.surround").setup() end)
+
+now(function()
+	local sessions = require("mini.sessions")
+	sessions.setup()
+
+	_G.Config.new_autocmd("VimLeavePre", "*", function()
+		local existing = MiniSessions.detected
+
+		if next(existing) == nil then
+			MiniSessions.write("Session")
+		elseif next(existing) then
+			MiniSessions.write()
+		end
+	end)
+end)
+
+now(function()
+	local starter = require("mini.starter")
+	starter.setup({
+		evaluate_single = true,
+		items = {
+			starter.sections.builtin_actions(),
+			starter.sections.recent_files(10, true),
+			-- Use this if you set up 'mini.sessions'
+			starter.sections.sessions(5, true),
+		},
+		content_hooks = {
+			starter.gen_hook.adding_bullet(),
+			starter.gen_hook.indexing("all", { "Builtin actions" }),
+			starter.gen_hook.padding(3, 2),
+		},
+	})
+end)
