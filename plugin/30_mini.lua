@@ -22,8 +22,6 @@ now(function()
 	later(MiniIcons.tweak_lsp_kind)
 end)
 
-now(function() require("mini.notify").setup() end)
-
 now(function() require("mini.statusline").setup() end)
 
 now(function() require("mini.tabline").setup() end)
@@ -140,7 +138,6 @@ now(function()
 	starter.setup({
 		evaluate_single = true,
 		items = {
-			starter.sections.builtin_actions(),
 			starter.sections.recent_files(10, true),
 			-- Use this if you set up 'mini.sessions'
 			starter.sections.sessions(5, true),

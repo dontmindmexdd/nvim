@@ -117,6 +117,8 @@ now(function()
 			"json-lsp",
 			"commitlint",
 			"vtsls",
+			"markdownlint-cli2",
+			"marksman",
 		},
 	})
 
@@ -135,6 +137,7 @@ now(function()
 		"vtsls",
 		"vim_ls",
 		"jsonls",
+		"marksman",
 	})
 
 	-- require("typescript-tools").setup({}) -- don't enable vtsls
@@ -149,9 +152,9 @@ now(function()
 		-- Built-in LSP functions
 		{ "<leader>cd", vim.diagnostic.open_float, desc = "Line Diagnostics" },
 		{ "gd", function() Snacks.picker.lsp_definitions() end, desc = "LSP: Goto Definition", has = "definition" },
-		{ "gr", function() Snacks.picker.lsp_references() end, desc = "LSP: References", nowait = true },
-		{ "gI", function() Snacks.picker.lsp_implementations() end, desc = "LSP: Goto Implementation" },
-		{ "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "LSP: Goto Type Definition" },
+		{ "grr", function() Snacks.picker.lsp_references() end, desc = "LSP: References", nowait = true },
+		{ "gri", function() Snacks.picker.lsp_implementations() end, desc = "LSP: Goto Implementation" },
+		{ "gry", function() Snacks.picker.lsp_type_definitions() end, desc = "LSP: Goto Type Definition" },
 		{ "gD", function() Snacks.picker.lsp_declarations() end, desc = "LSP: Goto Declaration" },
 		{ "K", vim.lsp.buf.hover, desc = "Hover" },
 		{ "gK", vim.lsp.buf.signature_help, desc = "Signature Help", has = "signatureHelp" },
@@ -207,6 +210,28 @@ _G.Config.now_if_args(function()
 			typescript = { "prettierd" },
 			javascript = { "prettierd" },
 			json = { "prettierd" },
+			["markdown"] = { "prettier", "markdownlint-cli2", "markdown-toc" },
+			["markdown.mdx"] = { "prettier", "markdownlint-cli2", "markdown-toc" },
+		},
+		formatters = {
+			["markdown-toc"] = {
+				condition = function(_, ctx)
+					for _, line in ipairs(vim.api.nvim_buf_get_lines(ctx.buf, 0, -1, false)) do
+						if line:find("<!%-%- toc %-%->") then
+							return true
+						end
+					end
+				end,
+			},
+			["markdownlint-cli2"] = {
+				condition = function(_, ctx)
+					local diag = vim.tbl_filter(
+						function(d) return d.source == "markdownlint" end,
+						vim.diagnostic.get(ctx.buf)
+					)
+					return #diag > 0
+				end,
+			},
 		},
 		format_on_save = {
 			-- These options will be passed to conform.format()
@@ -220,7 +245,7 @@ _G.Config.now_if_args(function()
 	add("mfussenegger/nvim-lint")
 
 	require("lint").linters_by_ft = {
-		markdown = { "vale" },
+		markdown = { "markdownlint-cli2" },
 		javascript = { "eslint_d" },
 		typescript = { "eslint_d" },
 		json = { "jsonlint" },

@@ -43,6 +43,11 @@ later(function()
 				lua = { inherit_defaults = true, "lazydev" },
 			},
 			providers = {
+				text = {
+					module = "blink.cmp.sources.text",
+					score_offset = -99,
+					max_items = 3,
+				},
 				lazydev = {
 					name = "LazyDev",
 					module = "lazydev.integrations.blink",

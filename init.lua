@@ -48,6 +48,7 @@ _G.Config.now_if_args(function()
 		"vimdoc",
 		"markdown",
 		"typescript",
+		"javascript",
 		"typescriptreact",
 		"javascriptreact",
 	}
