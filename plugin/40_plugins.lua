@@ -215,7 +215,6 @@ now_if_args(function()
       documentation = { auto_show = true },
       menu = {
         border = 'none',
-        documentation = { window = { border = 'none' } },
         draw = {
           treesitter = { 'lsp' },
           columns = {
