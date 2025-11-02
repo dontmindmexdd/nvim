@@ -12,6 +12,17 @@
 local add, later, now = MiniDeps.add, MiniDeps.later, MiniDeps.now
 local now_if_args = _G.Config.now_if_args
 
+now(function()
+  add('ibhagwan/fzf-lua')
+
+  require('fzf-lua').setup({
+    keymap = {
+      ['<C-f>'] = 'preview-page-down',
+      ['<S-b>'] = 'preview-page-up',
+    },
+  })
+end)
+
 -- Tree-sitter ================================================================
 
 -- Tree-sitter is a tool for fast incremental parsing. It converts text into

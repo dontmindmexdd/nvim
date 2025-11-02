@@ -1,73 +1,19 @@
 -- ┌────────────────────┐
 -- │ MINI configuration │
 -- └────────────────────┘
---
--- This file contains configuration of the MINI parts of the config.
--- It contains only configs for the 'mini.nvim' plugin (installed in 'init.lua').
---
--- 'mini.nvim' is a library of modules. Each is enabled independently via
--- `require('mini.xxx').setup()` convention. It creates all intended side effects:
--- mappings, autocommands, highlight groups, etc. It also creates a global
--- `MiniXxx` table that can be later used to access module's features.
---
--- Every module's `setup()` function accepts an optional `config` table to
--- adjust its behavior. See the structure of this table at `:h MiniXxx.config`.
---
--- See `:h mini.nvim-general-principles` for more general principles.
---
--- Here each module's `setup()` has a brief explanation of what the module is for,
--- its usage examples (uses Leader mappings from 'plugin/20_keymaps.lua'), and
--- possible directions for more info.
--- For more info about a module see its help page (`:h mini.xxx` for 'mini.xxx').
-
--- To minimize the time until first screen draw, modules are enabled in two steps:
--- - Step one enables everything that is needed for first draw with `now()`.
---   Sometimes is needed only if Neovim is started as `nvim -- path/to/file`.
--- - Everything else is delayed until the first draw with `later()`.
 local now, later = MiniDeps.now, MiniDeps.later
 local now_if_args = _G.Config.now_if_args
 
--- Step one ===================================================================
--- Enable 'miniwinter' color scheme. It comes with 'mini.nvim' and uses 'mini.hues'.
---
--- See also:
--- - `:h mini.nvim-color-schemes` - list of other color schemes
--- - `:h MiniHues-examples` - how to define highlighting with 'mini.hues'
--- - 'plugin/40_plugins.lua' honorable mentions - other good color schemes
-
--- You can try these other 'mini.hues'-based color schemes (uncomment with `gcc`):
--- now(function() vim.cmd('colorscheme minispring') end)
--- now(function() vim.cmd('colorscheme minisummer') end)
--- now(function() vim.cmd('colorscheme miniautumn') end)
--- now(function() vim.cmd('colorscheme randomhue') end)
-
--- Common configuration presets. Example usage:
--- - `<C-s>` in Insert mode - save and go to Normal mode
--- - `go` / `gO` - insert empty line before/after in Normal mode
--- - `gy` / `gp` - copy / paste from system clipboard
--- - `\` + key - toggle common options. Like `\h` toggles highlighting search.
--- - `<C-hjkl>` (four combos) - navigate between windows.
--- - `<M-hjkl>` in Insert/Command mode - navigate in that mode.
---
--- See also:
--- - `:h MiniBasics.config.options` - list of adjusted options
--- - `:h MiniBasics.config.mappings` - list of created mappings
--- - `:h MiniBasics.config.autocommands` - list of created autocommands
 now(function()
   require('mini.basics').setup({
     -- Manage options in 'plugin/10_options.lua' for didactic purposes
-    options = { basic = false },
+    options = { basic = true },
     mappings = {
-      -- Create `<C-hjkl>` mappings for window navigation
       windows = true,
-      -- Create `<M-hjkl>` mappings for navigation in Insert and Command modes
-      move_with_alt = true,
     },
   })
 end)
 
--- Icon provider. Usually no need to use manually. It is used by plugins like
--- 'mini.pick', 'mini.files', 'mini.statusline', and others.
 now(function()
   -- Set up to not prefer extension-based icon for some extensions
   local ext3_blocklist = { scm = true, txt = true, yml = true }
@@ -78,42 +24,17 @@ now(function()
     end,
   })
 
-  -- Mock 'nvim-tree/nvim-web-devicons' for plugins without 'mini.icons' support.
-  -- Not needed for 'mini.nvim' or MiniMax, but might be useful for others.
   later(MiniIcons.mock_nvim_web_devicons)
-
-  -- Add LSP kind icons. Useful for 'mini.completion'.
   later(MiniIcons.tweak_lsp_kind)
 end)
 
--- Miscellaneous small but useful functions. Example usage:
--- - `<Leader>oz` - toggle between "zoomed" and regular view of current buffer
--- - `<Leader>or` - resize window to its "editable width"
--- - `:lua put_text(vim.lsp.get_clients())` - put output of a function below
---   cursor in current buffer. Useful for a detailed exploration.
--- - `:lua put(MiniMisc.stat_summary(MiniMisc.bench_time(f, 100)))` - run
---   function `f` 100 times and report statistical summary of execution times
---
--- Uses `now()` for `setup_xxx()` to work when started like `nvim -- path/to/file`
 now_if_args(function()
-  -- Makes `:h MiniMisc.put()` and `:h MiniMisc.put_text()` public
   require('mini.misc').setup()
 
-  -- Restore latest cursor position on file open
   MiniMisc.setup_restore_cursor()
-
-  -- Synchronize terminal emulator background with Neovim's background to remove
-  -- possibly different color padding around Neovim instance
   MiniMisc.setup_termbg_sync()
 end)
 
--- Notifications provider. Shows all kinds of notifications in the upper right
--- corner (by default). Example usage:
--- - `:h vim.notify()` - show notification (hides automatically)
--- - `<Leader>en` - show notification history
---
--- See also:
--- - `:h MiniNotify.config` for some of common configuration examples.
 now(function() require('mini.notify').setup() end)
 
 -- Session management. A thin wrapper around `:h mksession` that consistently
@@ -181,22 +102,10 @@ later(function() require('mini.extra').setup() end)
 later(function()
   local ai = require('mini.ai')
   ai.setup({
-    -- 'mini.ai' can be extended with custom textobjects
     custom_textobjects = {
-      -- Make `aB` / `iB` act on around/inside whole *b*uffer
-      B = MiniExtra.gen_ai_spec.buffer(),
-      -- For more complicated textobjects that require structural awareness,
-      -- use tree-sitter. This example makes `aF`/`iF` mean around/inside function
-      -- definition (not call). See `:h MiniAi.gen_spec.treesitter()` for details.
-      F = ai.gen_spec.treesitter({ a = '@function.outer', i = '@function.inner' }),
+      g = MiniExtra.gen_ai_spec.buffer(),
+      f = ai.gen_spec.treesitter({ a = '@function.outer', i = '@function.inner' }),
     },
-
-    -- 'mini.ai' by default mostly mimics built-in search behavior: first try
-    -- to find textobject covering cursor, then try to find to the right.
-    -- Although this works in most cases, some are confusing. It is more robust to
-    -- always try to search only covering textobject and explicitly ask to search
-    -- for next (`an`/`in`) or last (`al`/`il`).
-    -- Try this. If you don't like it - delete next line and this comment.
     search_method = 'cover',
   })
 end)
@@ -212,15 +121,6 @@ end)
 -- - `:h MiniAlign.gen_step` - list of support step customizations
 -- - `:h MiniAlign-algorithm` - how alignment is done on algorithmic level
 -- later(function() require('mini.align').setup() end)
-
--- Animate common Neovim actions. Like cursor movement, scroll, window resize,
--- window open, window close. Animations are done based on Neovim events and
--- don't require custom mappings.
---
--- It is not enabled by default because its effects are a matter of taste.
--- Also scroll and resize have some unwanted side effects (see `:h mini.animate`).
--- Uncomment next line (use `gcc`) to enable.
--- later(function() require('mini.animate').setup() end)
 
 -- Go forward/backward with square brackets. Implements consistent sets of mappings
 -- for selected targets (like buffers, diagnostic, quickfix list entries, etc.).
@@ -472,29 +372,6 @@ later(function() require('mini.jump').setup() end)
 -- - `:h MiniJump2d.gen_spotter` - list of available spotters
 later(function() require('mini.jump2d').setup() end)
 
--- Special key mappings. Provides helpers to map:
--- - Multi-step actions. Apply action 1 if condition is met; else apply
---   action 2 if condition is met; etc.
--- - Combos. Sequence of keys where each acts immediately plus execute extra
---   action if all are typed fast enough. Useful for Insert mode mappings to not
---   introduce delay when typing mapping keys without intention to execute action.
---
--- See also:
--- - `:h MiniKeymap-examples` - examples of common setups
--- - `:h MiniKeymap.map_multistep()` - map multi-step action
--- - `:h MiniKeymap.map_combo()` - map combo
-later(function()
-  require('mini.keymap').setup()
-  -- Navigate 'mini.completion' menu with `<Tab>` /  `<S-Tab>`
-  MiniKeymap.map_multistep('i', '<Tab>', { 'pmenu_next' })
-  MiniKeymap.map_multistep('i', '<S-Tab>', { 'pmenu_prev' })
-  -- On `<CR>` try to accept current completion item, fall back to accounting
-  -- for pairs from 'mini.pairs'
-  MiniKeymap.map_multistep('i', '<CR>', { 'pmenu_accept', 'minipairs_cr' })
-  -- On `<BS>` just try to account for pairs from 'mini.pairs'
-  MiniKeymap.map_multistep('i', '<BS>', { 'minipairs_bs' })
-end)
-
 -- Window with text overview. It is displayed on the right hand side. Can be used
 -- for quick overview and navigation. Hidden by default. Example usage:
 -- - `<Leader>mt` - toggle map window
@@ -509,8 +386,9 @@ end)
 later(function()
   local map = require('mini.map')
   map.setup({
+    width = 8,
     -- Use Braille dots to encode text
-    symbols = { encode = map.gen_encode_symbols.dot('4x2') },
+    symbols = { encode = map.gen_encode_symbols.block('3x2') },
     -- Show built-in search matches, 'mini.diff' hunks, and diagnostic entries
     integrations = {
       map.gen_integration.builtin_search(),
@@ -579,7 +457,24 @@ end)
 -- - `:h MiniPick.builtin` and `:h MiniExtra.pickers` - available pickers;
 --   Execute one either with Lua function, `:Pick <picker-name>` command, or
 --   one of `<Leader>f` mappings defined in 'plugin/20_keymaps.lua'
-later(function() require('mini.pick').setup() end)
+-- later(function()
+--   local win_config = function()
+--     local height = math.floor(0.618 * vim.o.lines)
+--     local width = math.floor(0.618 * vim.o.columns)
+--     return {
+--       anchor = 'NW',
+--       height = height,
+--       width = width,
+--       row = math.floor(0.5 * (vim.o.lines - height)),
+--       col = math.floor(0.5 * (vim.o.columns - width)),
+--     }
+--   end
+--   require('mini.pick').setup({
+--     window = {
+--       config = win_config,
+--     },
+--   })
+-- end)
 
 -- Split and join arguments (regions inside brackets between allowed separators).
 -- It uses Lua patterns to find arguments, which means it works in comments and
